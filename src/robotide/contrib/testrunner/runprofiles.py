@@ -371,3 +371,110 @@ class CustomScriptProfile(PybotProfile):
 
     def OnCustomScriptChanged(self, evt):
         self.set_setting("runner_script", self._script.GetValue())
+
+class RunScriptProfile(PybotProfile):
+    '''A runner profile which used for STE reporting runs - added by John Shaw'''
+
+    name = "run"
+
+    def ArgumentsPanel(self, parent):
+        panel = wx.Panel(parent, wx.ID_ANY)
+        label = Label(panel, label="Arguments: ")
+        self._arguments = wx.TextCtrl(panel, wx.ID_ANY, size=(-1, -1),
+                                      value=u'-d C:\\test --listener Listener')
+        self._arguments.SetToolTipString("Arguments for the test run. Arguments are space separated list.")
+        self._arguments.Bind(wx.EVT_TEXT, self.OnArgumentsChanged)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label, 0, wx.ALL | wx.EXPAND)
+        sizer.Add(self._arguments, 1, wx.ALL | wx.EXPAND)
+        panel.SetSizerAndFit(sizer)
+        self._validate_arguments(self.arguments or u'')
+        self.set_setting("arguments", u'-d C:\\test --listener Listener')
+        panel.Show(False)
+        return panel
+
+
+class PlanScriptProfile(PybotProfile):
+    '''A runner profile which used for STE plan runs - added by John Shaw'''
+
+    name = "plan"
+
+    def ArgumentsPanel(self, parent):
+        panel = wx.Panel(parent, wx.ID_ANY)
+        label = Label(panel, label="Arguments: ")
+        self._arguments = wx.TextCtrl(panel, wx.ID_ANY, size=(-1, -1),
+                                      value=u'-d C:\\test --listener Plan')
+        self._arguments.SetToolTipString("Arguments for the test run. Arguments are space separated list.")
+        self._arguments.Bind(wx.EVT_TEXT, self.OnArgumentsChanged)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label, 0, wx.ALL | wx.EXPAND)
+        sizer.Add(self._arguments, 1, wx.ALL | wx.EXPAND)
+        panel.SetSizerAndFit(sizer)
+        self._validate_arguments(self.arguments or u'')
+        self.set_setting("arguments", u'-d C:\\test --listener Plan')
+        panel.Show(False)
+        return panel
+
+class BlockConfigScriptProfile(PybotProfile):
+    '''A runner profile which used for STE Block Config runs - added by John Shaw'''
+
+    name = "block_config"
+
+    def ArgumentsPanel(self, parent):
+        panel = wx.Panel(parent, wx.ID_ANY)
+        label = Label(panel, label="Arguments: ")
+        self._arguments = wx.TextCtrl(panel, wx.ID_ANY, size=(-1, -1),
+                                      value=u'-d C:\\test --listener Block_Config')
+        self._arguments.SetToolTipString("Arguments for the test run. Arguments are space separated list.")
+        self._arguments.Bind(wx.EVT_TEXT, self.OnArgumentsChanged)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label, 0, wx.ALL | wx.EXPAND)
+        sizer.Add(self._arguments, 1, wx.ALL | wx.EXPAND)
+        panel.SetSizerAndFit(sizer)
+        self._validate_arguments(self.arguments or u'')
+        self.set_setting("arguments", u'-d C:\\test --listener Block_Config')
+        panel.Show(False)
+        return panel
+
+
+class BlockScriptProfile(PybotProfile):
+    '''A runner profile which used for STE BLOCK runs - added by John Shaw'''
+
+    name = "block"
+
+    def ArgumentsPanel(self, parent):
+        panel = wx.Panel(parent, wx.ID_ANY)
+        label = Label(panel, label="Arguments: ")
+        self._arguments = wx.TextCtrl(panel, wx.ID_ANY, size=(-1, -1),
+                                      value=u'-d C:\\test --listener Block')
+        self._arguments.SetToolTipString("Arguments for the test run. Arguments are space separated list.")
+        self._arguments.Bind(wx.EVT_TEXT, self.OnArgumentsChanged)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label, 0, wx.ALL | wx.EXPAND)
+        sizer.Add(self._arguments, 1, wx.ALL | wx.EXPAND)
+        panel.SetSizerAndFit(sizer)
+        self._validate_arguments(self.arguments or u'')
+        self.set_setting("arguments", u'-d C:\\test --listener Block')
+        panel.Show(False)
+        return panel
+
+class DebugScriptProfile(PybotProfile):
+    '''A runner profile which used for STE Debug runs - added by John Shaw'''
+
+    name = "debug"
+
+    def ArgumentsPanel(self, parent):
+        panel = wx.Panel(parent, wx.ID_ANY)
+        label = Label(panel, label="Arguments: ")
+        self._arguments = wx.TextCtrl(panel, wx.ID_ANY, size=(-1, -1),
+                                      value=u'-d C:\\test --listener Debug')
+        self._arguments.SetToolTipString("Arguments for the test run. Arguments are space separated list.")
+        self._arguments.Bind(wx.EVT_TEXT, self.OnArgumentsChanged)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label, 0, wx.ALL | wx.EXPAND)
+        sizer.Add(self._arguments, 1, wx.ALL | wx.EXPAND)
+        panel.SetSizerAndFit(sizer)
+        self._validate_arguments(self.arguments or u'')
+        self.set_setting("arguments", u'-d C:\\test --listener Debug')
+        panel.Show(False)
+        return panel
