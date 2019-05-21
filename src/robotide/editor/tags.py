@@ -20,9 +20,8 @@ if __name__ == '__main__':
 import wx
 
 from robotide.editor.flowsizer import HorizontalFlowSizer
-from robotide.controller.ctrlcommands import ChangeTag
+from robotide.controller.ctrlcommands import ChangeTag, ClearSetting
 from robotide.controller.tags import ForcedTag, DefaultTag, Tag
-
 
 class TagsDisplay(wx.Panel):
 
@@ -45,6 +44,7 @@ class TagsDisplay(wx.Panel):
     def build(self):
         if not (self._tag_boxes and self._tag_boxes[-1].add_new):
             self.add_new_tag_tagbox(rebuild=False)
+        self._sizer.SetSizeHints(self)
         parent_sizer = self.GetParent().GetSizer()
         if parent_sizer:
             parent_sizer.Layout()
@@ -88,6 +88,11 @@ class TagsDisplay(wx.Panel):
         for tb in self._tag_boxes[:]:
             if tb.value == '':
                 self._destroy_tagbox(tb)
+                if self._modifiable_tags_count() == 0:
+                    self._controller.execute(ClearSetting())
+
+    def _modifiable_tags_count(self):
+        return sum(1 for tb in self._tag_boxes[:] if tb._properties.modifiable)
 
     def _set_tags(self, tags, tagboxes, controller):
         if not tags:
@@ -188,7 +193,10 @@ class TagBox(wx.TextCtrl):
 
     def OnKillFocus(self, event):
         self._update_value()
-        # event.Skip() Can't skip on Linux as this causes crash
+        # Send skip event only if tagbox is empty and about to be destroyed
+        # On some platforms this event is sent too late and causes crash
+        if self.value != '':
+            event.Skip()
 
     def _update_value(self):
         self._properties.change_value(self.value)
