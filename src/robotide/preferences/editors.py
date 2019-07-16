@@ -19,6 +19,27 @@ from os.path import abspath, dirname, join
 
 from robotide.preferences import widgets
 from robotide.widgets import Label
+from robotide.utils import PY3
+
+if PY3:
+    from functools import lru_cache
+else:
+    # On PY2, cache function is not built-in
+    def lru_cache(*args, **kwargs):
+        def inner(func):
+            return func
+        return inner
+
+
+@lru_cache(maxsize=2)
+def ReadFonts():
+    '''Returns list with fixed width fonts'''
+    f = wx.FontEnumerator()
+    f.EnumerateFacenames()
+    names = f.GetFacenames(fixedWidthOnly=True)
+    names = [n for n in names if not n.startswith('@')]
+    names.sort()
+    return names
 
 
 class EditorPreferences(widgets.PreferencesPanel):
@@ -48,9 +69,10 @@ class EditorPreferences(widgets.PreferencesPanel):
         for picker in self._color_pickers:
             picker.SetColour(defaults[picker.key])
 
-    def _read_defaults(self):
+    def _read_defaults(self, plugin=False):
         settings = [s.strip() for s in open(self._get_path(), 'r').readlines()]
-        start_index = settings.index('[%s]' % self.name) + 1
+        name = ('[[%s]]' if plugin else '[%s]') % self.name
+        start_index = settings.index(name) + 1
         defaults = {}
         for line in settings[start_index:]:
             if line.startswith('['):
@@ -68,11 +90,15 @@ class EditorPreferences(widgets.PreferencesPanel):
         f = widgets.IntegerChoiceEditor(
             self._settings, 'font size', 'Font Size',
             [str(i) for i in range(8, 16)])
-        sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=30)
+        sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=10, hgap=30)
         sizer.AddMany([f.label(self), f.chooser(self)])
         if 'fixed font' in self._settings:
             sizer.AddMany(widgets.boolean_editor(
                 self, self._settings, 'fixed font', 'Use fixed width font'))
+        if 'font face' in self._settings:
+            s = widgets.StringChoiceEditor(
+                self._settings, 'font face', 'Font Face', ReadFonts())
+            sizer.AddMany([s.label(self), s.chooser(self)])
         return sizer
 
     def create_colors_sizer(self):
@@ -99,11 +125,12 @@ class TextEditorPreferences(EditorPreferences):
             ('gherkin', 'Gherkin keyword foreground'),
             ('heading', 'Heading foreground'),
             ('import', 'Import foreground'),
+            ('variable', 'Variable foreground'),
+            ('tc_kw_name', 'Keyword definition foreground'),
             ('separator', 'Separator'),
             ('setting', 'Setting foreground'),
             ('syntax', 'Syntax characters'),
-            ('tc_kw_name', 'Keyword definition foreground'),
-            ('variable', 'Variable foreground'),
+            ('background', 'Text background'),
         ):
             if column == 4:
                 column = 0
@@ -214,3 +241,53 @@ class GridEditorPreferences(EditorPreferences):
             colors_sizer.Add(lbl, (row, 1),
                              flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=4)
             row += 1
+
+
+class TestRunnerPreferences(EditorPreferences):
+    location = ("Test Runner",)
+    title = "Test Runner Settings"
+    name = "Test Runner"
+
+    def __init__(self, settings, *args, **kwargs):
+        super(TestRunnerPreferences, self).__init__(
+            settings['Plugins'][self.name], *args, **kwargs)
+        self.Sizer.Add(self._create_test_runner_config_editor())
+
+    def _create_test_runner_config_editor(self):
+        self._settings.get('confirm run', True)
+        settings = self._settings
+        sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
+
+        sizer.AddMany(widgets.boolean_editor(
+            self, settings, 'confirm run', 'Asks for confirmation to run all'
+                                           ' tests if none selected '))
+        return sizer
+
+    def create_colors_sizer(self):
+        container = wx.GridBagSizer()
+        row = 0
+        column = 0
+        for settings_key, label_text in (
+            ('foreground', 'Text foreground'),
+            ('background', 'Text background'),
+            ('error', 'Error foreground'),
+        ):
+            if column == 4:
+                column = 0
+                row += 1
+            label = wx.StaticText(self, wx.ID_ANY, label_text)
+            button = widgets.PreferencesColorPicker(
+                self, wx.ID_ANY, self._settings, settings_key)
+            container.Add(button, (row, column),
+                          flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=4)
+            self._color_pickers.append(button)
+            column += 1
+            container.Add(label, (row, column),
+                          flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT, border=8)
+            column += 1
+        return container
+
+    def OnReset(self, event):
+        defaults = self._read_defaults(plugin=True)
+        for picker in self._color_pickers:
+            picker.SetColour(defaults[picker.key])
